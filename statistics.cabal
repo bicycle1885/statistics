@@ -81,6 +81,7 @@ library
     Statistics.Test.MannWhitneyU
     Statistics.Test.KruskalWallis
     Statistics.Test.WilcoxonT
+    Statistics.Test.StudentT
     Statistics.Test.Types
     Statistics.Transform
     Statistics.Types
