@@ -1,7 +1,10 @@
 {-# LANGUAGE FlexibleContexts #-}
--- | t-test
+-- | t-test is a parametric test for assesing the difference of the means between two samples.
 module Statistics.Test.StudentT (
-  tTest
+  tTest2,
+  TTestMode(..),
+  TestResult(..),
+  TestType(..)
 ) where
 
 import Statistics.Distribution hiding (mean)
@@ -10,29 +13,34 @@ import Statistics.Sample (mean, varianceUnbiased)
 import Statistics.Test.Types
 import qualified Data.Vector.Generic as G
 
-data TTestMode = Student  -- Student's t-test
-               | Welch    -- Welch's t-test
-               | Paired   -- paired-sample t-test
+data TTestMode = Student  -- ^ Student's t-test
+               | Welch    -- ^ Welch's t-test
+               | Paired   -- ^ paired-sample t-test
                deriving Eq
 
-tTest :: (G.Vector v Double)
+-- |Two-sample t-test.
+--
+-- In two-sample t-test, you can choose a test mode based on the experimental design:
+--
+--  [@Student@] Student's t-test, where variance equality of two samples is assumed.
+--  [@Welch@]   Welch's t-test, where variance equality of two samples is not assumed.
+--  [@Paired@]  paired t-test, where two samples are paired in a within-subject design.
+--
+tTest2 :: (G.Vector v Double)
       => TestType       -- ^ one- or two-tailed test
       -> Double         -- ^ p-value
-      -> Bool           -- ^ assume variance equality or not
-      -> Bool           -- ^ paired samples or not
+      -> TTestMode      -- ^ t-test mode (Student, Welch or Paired)
       -> v Double       -- ^ Sample 1
       -> v Double       -- ^ Smaple 2
       -> TestResult
-tTest test p vareq paired sample1 sample2 = significant $ pvalue < p
+tTest2 test p mode sample1 sample2 = significant $ pvalue < p
   where
     pvalue = case test of
-      OneTailed -> tail'
-      TwoTailed -> tail' * 2
+      OneTailed -> tailArea
+      TwoTailed -> tailArea * 2
     (t, df) = tStatistics mode sample1 sample2
-    tail' = 1 - cumulative (studentT df) t
-    mode | paired    = Paired
-         | vareq     = Student
-         | otherwise = Welch
+    tailArea = let area = cumulative (studentT df) t
+      in if t < 0 then area else 1 - area
 
 tStatistics :: (G.Vector v Double) => TTestMode -> v Double -> v Double -> (Double, Double)
 tStatistics mode sample1 sample2

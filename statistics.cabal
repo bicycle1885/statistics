@@ -125,6 +125,7 @@ test-suite tests
     Tests.Distribution
     Tests.Helpers
     Tests.Function
+    Tests.Parametric
     Tests.NonParametric
     Tests.NonParametric.Table
     Tests.Transform
